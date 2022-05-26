@@ -3,7 +3,7 @@
 /*
 Provides the command-line interface for the chainbridge application.
 
-For configuration and CLI commands see the README: https://github.com/ChainSafe/ChainBridge.
+For configuration and CLI commands see the README: https://github.com/Phala-Network/ChainBridge.
 */
 package main
 
@@ -15,13 +15,13 @@ import (
 
 	"strconv"
 
-	"github.com/ChainSafe/ChainBridge/chains/ethereum"
-	"github.com/ChainSafe/ChainBridge/chains/substrate"
-	"github.com/ChainSafe/ChainBridge/config"
-	"github.com/ChainSafe/chainbridge-utils/core"
-	"github.com/ChainSafe/chainbridge-utils/metrics/health"
-	metrics "github.com/ChainSafe/chainbridge-utils/metrics/types"
-	"github.com/ChainSafe/chainbridge-utils/msg"
+	"github.com/Phala-Network/ChainBridge/chains/ethereum"
+	"github.com/Phala-Network/ChainBridge/chains/substrate"
+	"github.com/Phala-Network/ChainBridge/config"
+	"github.com/Phala-Network/chainbridge-utils/core"
+	"github.com/Phala-Network/chainbridge-utils/metrics/health"
+	metrics "github.com/Phala-Network/chainbridge-utils/metrics/types"
+	"github.com/Phala-Network/chainbridge-utils/msg"
 	log "github.com/ChainSafe/log15"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/urfave/cli/v2"
@@ -152,8 +152,6 @@ func run(ctx *cli.Context) error {
 	if err != nil {
 		return err
 	}
-
-	log.Debug("Config on initialization...", "config", *cfg)
 
 	// Check for test key flag
 	var ks string

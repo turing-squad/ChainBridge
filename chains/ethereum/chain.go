@@ -24,18 +24,17 @@ import (
 	"fmt"
 	"math/big"
 
-	bridge "github.com/ChainSafe/ChainBridge/bindings/Bridge"
-	erc20Handler "github.com/ChainSafe/ChainBridge/bindings/ERC20Handler"
-	erc721Handler "github.com/ChainSafe/ChainBridge/bindings/ERC721Handler"
-	"github.com/ChainSafe/ChainBridge/bindings/GenericHandler"
-	connection "github.com/ChainSafe/ChainBridge/connections/ethereum"
-	utils "github.com/ChainSafe/ChainBridge/shared/ethereum"
-	"github.com/ChainSafe/chainbridge-utils/blockstore"
-	"github.com/ChainSafe/chainbridge-utils/core"
-	"github.com/ChainSafe/chainbridge-utils/crypto/secp256k1"
-	"github.com/ChainSafe/chainbridge-utils/keystore"
-	metrics "github.com/ChainSafe/chainbridge-utils/metrics/types"
-	"github.com/ChainSafe/chainbridge-utils/msg"
+	bridge "github.com/Phala-Network/ChainBridge/bindings/Bridge"
+	erc20Handler "github.com/Phala-Network/ChainBridge/bindings/ERC20Handler"
+	erc721Handler "github.com/Phala-Network/ChainBridge/bindings/ERC721Handler"
+	"github.com/Phala-Network/ChainBridge/bindings/GenericHandler"
+	connection "github.com/Phala-Network/ChainBridge/connections/ethereum"
+	"github.com/Phala-Network/chainbridge-utils/blockstore"
+	"github.com/Phala-Network/chainbridge-utils/core"
+	"github.com/Phala-Network/chainbridge-utils/crypto/secp256k1"
+	"github.com/Phala-Network/chainbridge-utils/keystore"
+	metrics "github.com/Phala-Network/chainbridge-utils/metrics/types"
+	"github.com/Phala-Network/chainbridge-utils/msg"
 	"github.com/ChainSafe/log15"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
@@ -108,7 +107,7 @@ func InitializeChain(chainCfg *core.ChainConfig, logger log15.Logger, sysErr cha
 	}
 
 	stop := make(chan int)
-	conn := connection.NewConnection(cfg.endpoint, cfg.http, kp, logger, cfg.gasLimit, cfg.maxGasPrice, cfg.minGasPrice, cfg.gasMultiplier, cfg.egsApiKey, cfg.egsSpeed)
+	conn := connection.NewConnection(cfg.endpoint, cfg.http, kp, logger, cfg.gasLimit, cfg.maxGasPrice, cfg.gasMultiplier)
 	err = conn.Connect()
 	if err != nil {
 		return nil, err
@@ -117,19 +116,13 @@ func InitializeChain(chainCfg *core.ChainConfig, logger log15.Logger, sysErr cha
 	if err != nil {
 		return nil, err
 	}
-
-	if cfg.erc20HandlerContract != utils.ZeroAddress {
-		err = conn.EnsureHasBytecode(cfg.erc20HandlerContract)
-		if err != nil {
-			return nil, err
-		}
+	err = conn.EnsureHasBytecode(cfg.erc20HandlerContract)
+	if err != nil {
+		return nil, err
 	}
-
-	if cfg.genericHandlerContract != utils.ZeroAddress {
-		err = conn.EnsureHasBytecode(cfg.genericHandlerContract)
-		if err != nil {
-			return nil, err
-		}
+	err = conn.EnsureHasBytecode(cfg.genericHandlerContract)
+	if err != nil {
+		return nil, err
 	}
 
 	bridgeContract, err := bridge.NewBridge(cfg.bridgeContract, conn.Client())

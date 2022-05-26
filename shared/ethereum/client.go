@@ -13,7 +13,7 @@ import (
 
 	"github.com/ethereum/go-ethereum"
 
-	"github.com/ChainSafe/chainbridge-utils/crypto/secp256k1"
+	"github.com/Phala-Network/chainbridge-utils/crypto/secp256k1"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/ethclient"
@@ -22,7 +22,6 @@ import (
 
 const DefaultGasLimit = 6721975
 const DefaultMaxGasPrice = 20000000000
-const DefaultMinGasPrice = 0
 const DefaultGasMultiplier = 1
 
 var ExpectedBlockTime = time.Second

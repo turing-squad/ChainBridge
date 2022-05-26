@@ -9,11 +9,11 @@ import (
 	"testing"
 	"time"
 
-	"github.com/ChainSafe/ChainBridge/bindings/Bridge"
-	connection "github.com/ChainSafe/ChainBridge/connections/ethereum"
-	utils "github.com/ChainSafe/ChainBridge/shared/ethereum"
-	"github.com/ChainSafe/chainbridge-utils/keystore"
-	"github.com/ChainSafe/chainbridge-utils/msg"
+	"github.com/Phala-Network/ChainBridge/bindings/Bridge"
+	connection "github.com/Phala-Network/ChainBridge/connections/ethereum"
+	utils "github.com/Phala-Network/ChainBridge/shared/ethereum"
+	"github.com/Phala-Network/chainbridge-utils/keystore"
+	"github.com/Phala-Network/chainbridge-utils/msg"
 	"github.com/ChainSafe/log15"
 	"github.com/ethereum/go-ethereum/common"
 )
@@ -70,7 +70,7 @@ func newTestLogger(name string) log15.Logger {
 
 func newLocalConnection(t *testing.T, cfg *Config) *connection.Connection {
 	kp := keystore.TestKeyRing.EthereumKeys[cfg.from]
-	conn := connection.NewConnection(TestEndpoint, false, kp, TestLogger, big.NewInt(DefaultGasLimit), big.NewInt(DefaultGasPrice), big.NewInt(DefaultMinGasPrice), big.NewFloat(DefaultGasMultiplier), "", "")
+	conn := connection.NewConnection(TestEndpoint, false, kp, TestLogger, big.NewInt(DefaultGasLimit), big.NewInt(DefaultGasPrice), big.NewFloat(DefaultGasMultiplier))
 	err := conn.Connect()
 	if err != nil {
 		t.Fatal(err)
