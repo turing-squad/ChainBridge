@@ -10,15 +10,15 @@ import (
 	"math/big"
 	"time"
 
-	"github.com/ChainSafe/ChainBridge/bindings/Bridge"
-	"github.com/ChainSafe/ChainBridge/bindings/ERC20Handler"
-	"github.com/ChainSafe/ChainBridge/bindings/ERC721Handler"
-	"github.com/ChainSafe/ChainBridge/bindings/GenericHandler"
-	"github.com/ChainSafe/ChainBridge/chains"
-	utils "github.com/ChainSafe/ChainBridge/shared/ethereum"
-	"github.com/ChainSafe/chainbridge-utils/blockstore"
-	metrics "github.com/ChainSafe/chainbridge-utils/metrics/types"
-	"github.com/ChainSafe/chainbridge-utils/msg"
+	"github.com/Phala-Network/ChainBridge/bindings/Bridge"
+	"github.com/Phala-Network/ChainBridge/bindings/ERC20Handler"
+	"github.com/Phala-Network/ChainBridge/bindings/ERC721Handler"
+	"github.com/Phala-Network/ChainBridge/bindings/GenericHandler"
+	"github.com/Phala-Network/ChainBridge/chains"
+	utils "github.com/Phala-Network/ChainBridge/shared/ethereum"
+	"github.com/Phala-Network/chainbridge-utils/blockstore"
+	metrics "github.com/Phala-Network/chainbridge-utils/metrics/types"
+	"github.com/Phala-Network/chainbridge-utils/msg"
 	"github.com/ChainSafe/log15"
 	eth "github.com/ethereum/go-ethereum"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
@@ -92,9 +92,8 @@ func (l *listener) start() error {
 // Polling begins at the block defined in `l.cfg.startBlock`. Failed attempts to fetch the latest block or parse
 // a block will be retried up to BlockRetryLimit times before continuing to the next block.
 func (l *listener) pollBlocks() error {
+	l.log.Info("Polling Blocks...")
 	var currentBlock = l.cfg.startBlock
-	l.log.Info("Polling Blocks...", "block", currentBlock)
-
 	var retry = BlockRetryLimit
 	for {
 		select {

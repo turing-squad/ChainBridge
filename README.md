@@ -3,8 +3,8 @@
 <a href="https://discord.gg/ykXsJKfhgq">
   <img alt="discord" src="https://img.shields.io/discord/593655374469660673?label=Discord&logo=discord&style=flat" />
 </a>
-<a href="https://github.com/ChainSafe/ChainBridge/actions">
-  <img alt="build status" src="https://github.com/ChainSafe/ChainBridge/workflows/Tests/badge.svg?branch=master" />
+<a href="https://github.com/Phala-Network/ChainBridge/actions">
+  <img alt="build status" src="https://github.com/Phala-Network/ChainBridge/workflows/Tests/badge.svg?branch=master" />
 </a>
 
 
@@ -48,10 +48,9 @@ docker build -t chainsafe/chainbridge .
 ```
 
 To start ChainBridge:
-* `docker run -v` uses an absolute path rather than a relative one.
 
 ``` 
-docker run -v $(pwd)/config.json:/config.json chainsafe/chainbridge
+docker run -v ./config.json:/config.json chainsafe/chainbridge
 ```
 
 # Configuration
@@ -84,15 +83,12 @@ Ethereum chains support the following additional options:
     "erc721Handler": "0x1234...",    // Address of erc721 handler (required)
     "genericHandler": "0x1234...",   // Address of generic handler (required)
     "maxGasPrice": "0x1234",         // Gas price for transactions (default: 20000000000)
-    "minGasPrice": "0x1234",         // Minimum gas price for transactions (default: 0)
     "gasLimit": "0x1234",            // Gas limit for transactions (default: 6721975)
     "gasMultiplier": "1.25",         // Multiplies the gas price by the supplied value (default: 1)
     "http": "true",                  // Whether the chain connection is ws or http (default: false)
     "startBlock": "1234",            // The block to start processing events from (default: 0)
     "blockConfirmations": "10"       // Number of blocks to wait before processing a block
     "useExtendedCall": "true"        // Extend extrinsic calls to substrate with ResourceID. Used for backward compatibility with example pallet. *Default: false*
-    "egsApiKey": "xxx..."            // API key for Eth Gas Station (https://www.ethgasstation.info/)
-    "egsSpeed": "fast"               // Desired speed for gas price selection, the options are: "average", "fast", "fastest"
 }
 ```
 

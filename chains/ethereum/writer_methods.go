@@ -9,13 +9,13 @@ import (
 	"math/big"
 	"time"
 
-	utils "github.com/ChainSafe/ChainBridge/shared/ethereum"
-	"github.com/ChainSafe/chainbridge-utils/msg"
+	utils "github.com/Phala-Network/ChainBridge/shared/ethereum"
+	"github.com/Phala-Network/chainbridge-utils/msg"
 	log "github.com/ChainSafe/log15"
 )
 
 // Number of blocks to wait for an finalization event
-const ExecuteBlockWatchLimit = 100
+const ExecuteBlockWatchLimit = 9600
 
 // Time between retrying a failed tx
 const TxRetryInterval = time.Second * 2
@@ -254,12 +254,6 @@ func (w *writer) voteProposal(m msg.Message, dataHash [32]byte) {
 				w.log.Error("Failed to update tx opts", "err", err)
 				continue
 			}
-			// These store the gas limit and price before a transaction is sent for logging in case of a failure
-			// This declaration is necessary as tx will be nil in the case of an error when sending VoteProposal()
-			// We must also declare variables instead of using w.conn.Opts() directly as the opts are currently locked
-			// here but for all the logging after line 272 the w.conn.Opts() is unlocked and could be changed by another process
-			gasLimit := w.conn.Opts().GasLimit
-			gasPrice := w.conn.Opts().GasPrice
 
 			tx, err := w.bridgeContract.VoteProposal(
 				w.conn.Opts(),
@@ -271,7 +265,7 @@ func (w *writer) voteProposal(m msg.Message, dataHash [32]byte) {
 			w.conn.UnlockOpts()
 
 			if err == nil {
-				w.log.Info("Submitted proposal vote", "tx", tx.Hash(), "src", m.Source, "depositNonce", m.DepositNonce, "gasPrice", tx.GasPrice().String())
+				w.log.Info("Submitted proposal vote", "tx", tx.Hash(), "src", m.Source, "depositNonce", m.DepositNonce)
 				if w.metrics != nil {
 					w.metrics.VotesSubmitted.Inc()
 				}
@@ -280,7 +274,7 @@ func (w *writer) voteProposal(m msg.Message, dataHash [32]byte) {
 				w.log.Debug("Nonce too low, will retry")
 				time.Sleep(TxRetryInterval)
 			} else {
-				w.log.Warn("Voting failed", "source", m.Source, "dest", m.Destination, "depositNonce", m.DepositNonce, "gasLimit", gasLimit, "gasPrice", gasPrice, "err", err)
+				w.log.Warn("Voting failed", "source", m.Source, "dest", m.Destination, "depositNonce", m.DepositNonce, "err", err)
 				time.Sleep(TxRetryInterval)
 			}
 
@@ -307,10 +301,6 @@ func (w *writer) executeProposal(m msg.Message, data []byte, dataHash [32]byte) 
 				w.log.Error("Failed to update nonce", "err", err)
 				return
 			}
-			// These store the gas limit and price before a transaction is sent for logging in case of a failure
-			// This is necessary as tx will be nil in the case of an error when sending VoteProposal()
-			gasLimit := w.conn.Opts().GasLimit
-			gasPrice := w.conn.Opts().GasPrice
 
 			tx, err := w.bridgeContract.ExecuteProposal(
 				w.conn.Opts(),
@@ -322,13 +312,13 @@ func (w *writer) executeProposal(m msg.Message, data []byte, dataHash [32]byte) 
 			w.conn.UnlockOpts()
 
 			if err == nil {
-				w.log.Info("Submitted proposal execution", "tx", tx.Hash(), "src", m.Source, "dst", m.Destination, "nonce", m.DepositNonce, "gasPrice", tx.GasPrice().String())
+				w.log.Info("Submitted proposal execution", "tx", tx.Hash(), "src", m.Source, "dst", m.Destination, "nonce", m.DepositNonce)
 				return
 			} else if err.Error() == ErrNonceTooLow.Error() || err.Error() == ErrTxUnderpriced.Error() {
 				w.log.Error("Nonce too low, will retry")
 				time.Sleep(TxRetryInterval)
 			} else {
-				w.log.Warn("Execution failed, proposal may already be complete", "gasLimit", gasLimit, "gasPrice", gasPrice, "err", err)
+				w.log.Warn("Execution failed, proposal may already be complete", "err", err)
 				time.Sleep(TxRetryInterval)
 			}
 

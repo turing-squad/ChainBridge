@@ -8,16 +8,14 @@ import (
 	"fmt"
 	"math/big"
 
-	"github.com/ChainSafe/ChainBridge/connections/ethereum/egs"
-	utils "github.com/ChainSafe/ChainBridge/shared/ethereum"
-	"github.com/ChainSafe/chainbridge-utils/core"
-	"github.com/ChainSafe/chainbridge-utils/msg"
+	utils "github.com/Phala-Network/ChainBridge/shared/ethereum"
+	"github.com/Phala-Network/chainbridge-utils/core"
+	"github.com/Phala-Network/chainbridge-utils/msg"
 	"github.com/ethereum/go-ethereum/common"
 )
 
 const DefaultGasLimit = 6721975
 const DefaultGasPrice = 20000000000
-const DefaultMinGasPrice = 0
 const DefaultBlockConfirmations = 10
 const DefaultGasMultiplier = 1
 
@@ -28,14 +26,11 @@ var (
 	Erc721HandlerOpt      = "erc721Handler"
 	GenericHandlerOpt     = "genericHandler"
 	MaxGasPriceOpt        = "maxGasPrice"
-	MinGasPriceOpt        = "minGasPrice"
 	GasLimitOpt           = "gasLimit"
 	GasMultiplier         = "gasMultiplier"
 	HttpOpt               = "http"
 	StartBlockOpt         = "startBlock"
 	BlockConfirmationsOpt = "blockConfirmations"
-	EGSApiKey             = "egsApiKey"
-	EGSSpeed              = "egsSpeed"
 )
 
 // Config encapsulates all necessary parameters in ethereum compatible forms
@@ -53,13 +48,10 @@ type Config struct {
 	genericHandlerContract common.Address
 	gasLimit               *big.Int
 	maxGasPrice            *big.Int
-	minGasPrice            *big.Int
 	gasMultiplier          *big.Float
 	http                   bool // Config for type of connection
 	startBlock             *big.Int
 	blockConfirmations     *big.Int
-	egsApiKey              string // API key for ethgasstation to query gas prices
-	egsSpeed               string // The speed which a transaction should be processed: average, fast, fastest. Default: fast
 }
 
 // parseChainConfig uses a core.ChainConfig to construct a corresponding Config
@@ -79,13 +71,10 @@ func parseChainConfig(chainCfg *core.ChainConfig) (*Config, error) {
 		genericHandlerContract: utils.ZeroAddress,
 		gasLimit:               big.NewInt(DefaultGasLimit),
 		maxGasPrice:            big.NewInt(DefaultGasPrice),
-		minGasPrice:            big.NewInt(DefaultMinGasPrice),
 		gasMultiplier:          big.NewFloat(DefaultGasMultiplier),
 		http:                   false,
 		startBlock:             big.NewInt(0),
 		blockConfirmations:     big.NewInt(0),
-		egsApiKey:              "",
-		egsSpeed:               "",
 	}
 
 	if contract, ok := chainCfg.Opts[BridgeOpt]; ok && contract != "" {
@@ -95,49 +84,35 @@ func parseChainConfig(chainCfg *core.ChainConfig) (*Config, error) {
 		return nil, fmt.Errorf("must provide opts.bridge field for ethereum config")
 	}
 
-	if contract, ok := chainCfg.Opts[Erc20HandlerOpt]; ok {
-		config.erc20HandlerContract = common.HexToAddress(contract)
-		delete(chainCfg.Opts, Erc20HandlerOpt)
-	}
+	config.erc20HandlerContract = common.HexToAddress(chainCfg.Opts[Erc20HandlerOpt])
+	delete(chainCfg.Opts, Erc20HandlerOpt)
 
-	if contract, ok := chainCfg.Opts[Erc721HandlerOpt]; ok {
-		config.erc721HandlerContract = common.HexToAddress(contract)
-		delete(chainCfg.Opts, Erc721HandlerOpt)
-	}
+	config.erc721HandlerContract = common.HexToAddress(chainCfg.Opts[Erc721HandlerOpt])
+	delete(chainCfg.Opts, Erc721HandlerOpt)
 
-	if contract, ok := chainCfg.Opts[GenericHandlerOpt]; ok {
-		config.genericHandlerContract = common.HexToAddress(contract)
-		delete(chainCfg.Opts, GenericHandlerOpt)
-	}
+	config.genericHandlerContract = common.HexToAddress(chainCfg.Opts[GenericHandlerOpt])
+	delete(chainCfg.Opts, GenericHandlerOpt)
 
 	if gasPrice, ok := chainCfg.Opts[MaxGasPriceOpt]; ok {
-		price, parseErr := utils.ParseUint256OrHex(&gasPrice)
-		if parseErr != nil {
-			return nil, fmt.Errorf("unable to parse max gas price, %w", parseErr)
+		price := big.NewInt(0)
+		_, pass := price.SetString(gasPrice, 10)
+		if pass {
+			config.maxGasPrice = price
+			delete(chainCfg.Opts, MaxGasPriceOpt)
+		} else {
+			return nil, errors.New("unable to parse max gas price")
 		}
-
-		config.maxGasPrice = price
-		delete(chainCfg.Opts, MaxGasPriceOpt)
-	}
-
-	if minGasPrice, ok := chainCfg.Opts[MinGasPriceOpt]; ok {
-		price, parseErr := utils.ParseUint256OrHex(&minGasPrice)
-		if parseErr != nil {
-			return nil, fmt.Errorf("unable to parse min gas price, %w", parseErr)
-		}
-
-		config.minGasPrice = price
-		delete(chainCfg.Opts, MinGasPriceOpt)
 	}
 
 	if gasLimit, ok := chainCfg.Opts[GasLimitOpt]; ok {
-		limit, parseErr := utils.ParseUint256OrHex(&gasLimit)
-		if parseErr != nil {
-			return nil, fmt.Errorf("unable to parse gas limit, %w", parseErr)
+		limit := big.NewInt(0)
+		_, pass := limit.SetString(gasLimit, 10)
+		if pass {
+			config.gasLimit = limit
+			delete(chainCfg.Opts, GasLimitOpt)
+		} else {
+			return nil, errors.New("unable to parse gas limit")
 		}
-
-		config.gasLimit = limit
-		delete(chainCfg.Opts, GasLimitOpt)
 	}
 
 	if gasMultiplier, ok := chainCfg.Opts[GasMultiplier]; ok {
@@ -182,20 +157,6 @@ func parseChainConfig(chainCfg *core.ChainConfig) (*Config, error) {
 	} else {
 		config.blockConfirmations = big.NewInt(DefaultBlockConfirmations)
 		delete(chainCfg.Opts, BlockConfirmationsOpt)
-	}
-
-	if gsnApiKey, ok := chainCfg.Opts[EGSApiKey]; ok && gsnApiKey != "" {
-		config.egsApiKey = gsnApiKey
-		delete(chainCfg.Opts, EGSApiKey)
-	}
-
-	if speed, ok := chainCfg.Opts[EGSSpeed]; ok && speed == egs.Average || speed == egs.Fast || speed == egs.Fastest {
-		config.egsSpeed = speed
-		delete(chainCfg.Opts, EGSSpeed)
-	} else {
-		// Default to "fast"
-		config.egsSpeed = egs.Fast
-		delete(chainCfg.Opts, EGSSpeed)
 	}
 
 	if len(chainCfg.Opts) != 0 {
